@@ -36,9 +36,9 @@ function App() {
                 <img
                   src="/bcc-logo.jpeg"
                   alt="BCC logo"
-                  className="h-12 w-12 rounded-full"
+                  className="h-14 w-14 rounded-full object contain"
                 />
-                <span className="text-sm text-yellow-300">
+                <span className="text-yellow-300 text-sm">
                   Bengaluru Cycling Club
                 </span>
               </div>

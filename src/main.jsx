@@ -34,7 +34,7 @@ function App() {
             <div>
               <div className="mb-4 flex items-center gap-3">
                 <img
-                  src="/bcc-logo.jpg"
+                  src="/bcc-logo.jpeg"
                   alt="BCC logo"
                   className="h-14 w-14 rounded-full border border-yellow-500/30 bg-black object-contain p-1"
                 />
@@ -44,7 +44,7 @@ function App() {
               </div>
 
               <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
-                Ride | Recognise | Respect
+                Bengaluru Cycling Club
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-8 text-white/70">

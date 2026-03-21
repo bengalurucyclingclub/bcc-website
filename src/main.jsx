@@ -32,15 +32,16 @@ function App() {
         <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
           <div className="grid gap-12 md:grid-cols-2 md:items-center">
             <div>
+
               <div className="mb-4 flex items-center gap-3">
                 <img
                   src="/bcc-logo.jpeg"
                   alt="BCC logo"
-                  className="h-14 w-14 rounded-full border border-yellow-500/30 bg-black object-contain p-1"
+                  className="h-14 w-14 rounded-full object-contain"
                 />
-                <div className="inline-flex rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-1 text-sm text-yellow-300">
+                <span className="text-yellow-300 text-sm">
                   Bengaluru Cycling Club
-                </div>
+                </span>
               </div>
 
               <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">

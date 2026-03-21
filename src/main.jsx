@@ -23,6 +23,8 @@ function App() {
     { label: "Recognition", value: "Weekly" },
   ];
 
+  const connectUrl = "https://bcc-strava-connect.onrender.com/connect";
+
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <section className="relative overflow-hidden border-b border-white/10">
@@ -52,14 +54,14 @@ function App() {
 
               <div className="mt-8 flex flex-wrap gap-4">
                 <a
-                  href="https://bcc-strava-connect.onrender.com/connect"
+                  href={connectUrl}
                   className="rounded-2xl bg-yellow-500 px-6 py-3 font-medium text-neutral-950 shadow-lg shadow-yellow-500/20 transition hover:scale-[1.02]"
                 >
                   Connect Strava
                 </a>
 
                 <a
-                  href="/leaderboards"
+                  href="#leaderboards"
                   className="rounded-2xl border border-white/15 px-6 py-3 font-medium text-white/90 transition hover:bg-white/5"
                 >
                   View Leaderboards
@@ -136,7 +138,7 @@ function App() {
                 should.
               </p>
               <a
-                href="https://bcc-strava-connect.onrender.com/connect"
+                href={connectUrl}
                 className="mt-6 inline-block rounded-2xl bg-yellow-500 px-5 py-3 font-medium text-neutral-950"
               >
                 Connect Strava

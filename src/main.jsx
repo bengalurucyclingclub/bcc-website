@@ -17,12 +17,6 @@ function App() {
     },
   ];
 
-  const stats = [
-    { label: "Community", value: "BCC" },
-    { label: "Tracking", value: "Automatic" },
-    { label: "Recognition", value: "Weekly" },
-  ];
-
   const connectUrl = "https://bcc-strava-connect.onrender.com/connect";
   const logoUrl = "/bcc_logo.jpeg";
 
@@ -122,18 +116,39 @@ function App() {
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              {stats.map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur"
-                >
-                  <div className="text-sm text-white/50">{item.label}</div>
-                  <div className="mt-2 text-2xl font-semibold text-yellow-300">
-                    {item.value}
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+              <div className="text-sm uppercase tracking-[0.2em] text-yellow-300/80">
+                How it works
+              </div>
+
+              <div className="mt-6 space-y-5">
+                <div>
+                  <div className="text-lg font-semibold text-white">
+                    1. Connect Strava
+                  </div>
+                  <div className="mt-1 text-white/60">
+                    One-time setup. Takes less than a minute.
                   </div>
                 </div>
-              ))}
+
+                <div>
+                  <div className="text-lg font-semibold text-white">
+                    2. Ride as usual
+                  </div>
+                  <div className="mt-1 text-white/60">
+                    Your rides continue exactly as they do today.
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-lg font-semibold text-white">
+                    3. Get recognised
+                  </div>
+                  <div className="mt-1 text-white/60">
+                    Your effort flows into the system automatically.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -25,8 +25,8 @@ function App() {
 
   const connectUrl = "https://bcc-strava-connect.onrender.com/connect";
   const logoUrl =
-    "https://raw.githubusercontent.com/bengalurucyclingclub/bcc-website/main/bcc-logo.jpeg";
-
+    "https://cdn.jsdelivr.net/gh/bengalurucyclingclub/bcc-website@main/bcc_logo.jpeg";  
+  
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <section className="relative overflow-hidden border-b border-white/10">

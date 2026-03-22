@@ -22,32 +22,45 @@ function App() {
 
   const [isConnected, setIsConnected] = useState(false);
   const [riderName, setRiderName] = useState("");
+  const [athleteId, setAthleteId] = useState("");
+  const [statsAvailable, setStatsAvailable] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const connected = params.get("connected");
     const name = params.get("name");
+    const athleteIdParam = params.get("athlete_id");
 
     if (connected === "1") {
       localStorage.setItem("bcc_strava_connected", "true");
       if (name) localStorage.setItem("bcc_rider_name", name);
+      if (athleteIdParam) localStorage.setItem("bcc_athlete_id", athleteIdParam);
+
       setIsConnected(true);
       setRiderName(name || "");
+      setAthleteId(athleteIdParam || "");
+
       window.history.replaceState({}, "", window.location.pathname);
       return;
     }
 
     const savedConnected = localStorage.getItem("bcc_strava_connected");
     const savedName = localStorage.getItem("bcc_rider_name");
+    const savedAthleteId = localStorage.getItem("bcc_athlete_id");
 
     if (savedConnected === "true") {
       setIsConnected(true);
       setRiderName(savedName || "");
+      setAthleteId(savedAthleteId || "");
     }
   }, []);
 
   const heroButtonText = useMemo(() => {
-    return isConnected ? "Connected" : "Connect Strava";
+    return isConnected ? "View your stats" : "Connect Strava";
+  }, [isConnected]);
+
+  const heroButtonHref = useMemo(() => {
+    return isConnected ? "#your-stats" : connectUrl;
   }, [isConnected]);
 
   const connectCardTitle = useMemo(() => {
@@ -94,15 +107,8 @@ function App() {
 
               <div className="mt-8 flex flex-wrap gap-4">
                 <a
-                  href={isConnected ? "#connect" : connectUrl}
-                  className={`relative z-10 rounded-2xl px-6 py-3 font-medium transition ${
-                    isConnected
-                      ? "cursor-default bg-white/10 text-white/60"
-                      : "bg-yellow-500 text-neutral-950 shadow-lg shadow-yellow-500/20 hover:scale-[1.02]"
-                  }`}
-                  onClick={(e) => {
-                    if (isConnected) e.preventDefault();
-                  }}
+                  href={heroButtonHref}
+                  className="relative z-10 rounded-2xl bg-yellow-500 px-6 py-3 font-medium text-neutral-950 shadow-lg shadow-yellow-500/20 transition hover:scale-[1.02]"
                 >
                   {heroButtonText}
                 </a>
@@ -220,6 +226,60 @@ function App() {
               )}
             </div>
           </div>
+        </div>
+      </section>
+
+      <section
+        id="your-stats"
+        className="mx-auto max-w-7xl px-6 py-16 md:py-24"
+      >
+        <div className="max-w-2xl">
+          <h2 className="text-3xl font-semibold md:text-4xl">
+            Your stats
+          </h2>
+          <p className="mt-4 text-white/65">
+            Your connected rider profile will appear here.
+          </p>
+        </div>
+
+        <div className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-8">
+          {!isConnected ? (
+            <div>
+              <div className="text-xl font-semibold text-white">
+                Connect your Strava account
+              </div>
+              <p className="mt-3 text-white/60">
+                Connect Strava first to view your personal stats.
+              </p>
+              <a
+                href={connectUrl}
+                className="mt-6 inline-block rounded-2xl bg-yellow-500 px-5 py-3 font-medium text-neutral-950"
+              >
+                Connect Strava
+              </a>
+            </div>
+          ) : !statsAvailable ? (
+            <div>
+              <div className="text-xl font-semibold text-white">
+                Stats are being prepared
+              </div>
+              <p className="mt-3 text-white/60">
+                {riderName
+                  ? `${riderName}, your account is connected.`
+                  : "Your account is connected."}{" "}
+                Your stats will appear here once they are synced to the system.
+              </p>
+              <div className="mt-6 text-sm text-white/40">
+                Athlete ID: {athleteId || "Not available"}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="text-xl font-semibold text-white">
+                Your stats are ready
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

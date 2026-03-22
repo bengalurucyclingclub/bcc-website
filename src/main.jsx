@@ -4,26 +4,31 @@ import ReactDOM from "react-dom/client";
 function App() {
   const features = [
     {
-      title: "Weekly Leaderboards",
-      desc: "Distance. Elevation. Consistency. Available for BCC members.",
+      title: "Your Stats",
+      desc: "Your riding numbers, all in one place.",
     },
     {
-      title: "Strava Connect",
-      desc: "Connect once. Your rides flow in automatically without screenshots or manual updates.",
+      title: "Milestones",
+      desc: "Track your 100s, 200s, 300s and beyond.",
     },
     {
-      title: "Milestones & Recognition",
-      desc: "Long rides, consistency, and effort that actually gets seen and remembered.",
+      title: "Progress Snapshot",
+      desc: "Quick look at distance, elevation and longest ride.",
     },
   ];
 
   const connectUrl = "https://bcc-strava-connect.onrender.com/connect";
   const logoUrl = "/bcc_logo.jpeg";
+  const statsApiUrl =
+    "https://script.google.com/macros/s/AKfycbzQXdpJkah4FSiFJaOFe1pXWJM4Twk6EbkkyfnVc1ZeCmr92PE61c9SuF5HGXOmgHrI/exec";
 
   const [isConnected, setIsConnected] = useState(false);
   const [riderName, setRiderName] = useState("");
   const [athleteId, setAthleteId] = useState("");
   const [statsAvailable, setStatsAvailable] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState("");
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -76,6 +81,89 @@ function App() {
 
     return "Connect once. Your rides get tracked. Your name shows up where it should.";
   }, [isConnected, riderName]);
+
+  function formatNumber(value, decimals = 0) {
+    return Number(value || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+  }
+
+  function formatKm(value) {
+    return `${formatNumber(value, 1)} km`;
+  }
+
+  function formatMeters(value) {
+    return `${formatNumber(value, 0)} m`;
+  }
+
+  function buildAthleteMeta(stats) {
+    const parts = [];
+
+    if (stats.username) parts.push(`@${stats.username}`);
+
+    const location = [stats.city, stats.state, stats.country]
+      .filter(Boolean)
+      .join(", ");
+    if (location) parts.push(location);
+
+    if (
+      stats.is_bcc_member === true ||
+      stats.is_bcc_member === "true" ||
+      stats.is_bcc_member === "TRUE" ||
+      stats.is_bcc_member === 1 ||
+      stats.is_bcc_member === "1"
+    ) {
+      if (stats.bcc_club_name) {
+        parts.push(stats.bcc_club_name);
+      } else {
+        parts.push("BCC Member");
+      }
+    }
+
+    return parts.join(" • ");
+  }
+
+  async function fetchStats() {
+    if (!athleteId) {
+      setStatsError("Athlete ID not found.");
+      return;
+    }
+
+    setStatsLoading(true);
+    setStatsError("");
+    setStatsAvailable(false);
+
+    try {
+      const url = `${statsApiUrl}?action=getStats&athleteId=${encodeURIComponent(
+        athleteId
+      )}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Unable to fetch stats");
+      }
+
+      if (!data.found) {
+        setStats(null);
+        setStatsAvailable(false);
+        setStatsError("No stats found yet for this rider.");
+        return;
+      }
+
+      setStats(data.stats);
+      setStatsAvailable(true);
+    } catch (error) {
+      setStats(null);
+      setStatsAvailable(false);
+      setStatsError(
+        error.message || "Something went wrong while loading stats."
+      );
+    } finally {
+      setStatsLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
@@ -148,10 +236,10 @@ function App() {
 
                 <div>
                   <div className="text-lg font-semibold text-white">
-                    3. Get recognised
+                    3. View your stats
                   </div>
                   <div className="mt-1 text-white/60">
-                    Your effort flows into the system automatically.
+                    Your dashboard pulls your numbers from the system.
                   </div>
                 </div>
               </div>
@@ -170,7 +258,7 @@ function App() {
           </h2>
           <p className="mt-4 text-white/65">
             Distance. Elevation. Consistency. The leaderboard reflects what
-            actually happened on the road. Available for BCC members.
+            actually happened on the road.
           </p>
         </div>
 
@@ -234,11 +322,9 @@ function App() {
         className="mx-auto max-w-7xl px-6 py-16 md:py-24"
       >
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold md:text-4xl">
-            Your stats
-          </h2>
+          <h2 className="text-3xl font-semibold md:text-4xl">Your stats</h2>
           <p className="mt-4 text-white/65">
-            Your connected rider profile will appear here.
+            Your connected rider profile appears here.
           </p>
         </div>
 
@@ -258,26 +344,161 @@ function App() {
                 Connect Strava
               </a>
             </div>
-          ) : !statsAvailable ? (
-            <div>
-              <div className="text-xl font-semibold text-white">
-                Stats are being prepared
-              </div>
-              <p className="mt-3 text-white/60">
-                {riderName
-                  ? `${riderName}, your account is connected.`
-                  : "Your account is connected."}{" "}
-                Your stats will appear here once they are synced to the system.
-              </p>
-              <div className="mt-6 text-sm text-white/40">
-                Athlete ID: {athleteId || "Not available"}
-              </div>
-            </div>
           ) : (
             <div>
-              <div className="text-xl font-semibold text-white">
-                Your stats are ready
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <div className="text-xl font-semibold text-white">
+                    {riderName
+                      ? `${riderName}, here’s your dashboard.`
+                      : "Your dashboard"}
+                  </div>
+                  <p className="mt-2 text-white/60">
+                    Athlete ID: {athleteId || "Not available"}
+                  </p>
+                </div>
+
+                <button
+                  onClick={fetchStats}
+                  disabled={statsLoading}
+                  className="rounded-2xl bg-yellow-500 px-5 py-3 font-medium text-neutral-950 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {statsLoading ? "Loading..." : "View your stats"}
+                </button>
               </div>
+
+              {statsError && (
+                <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
+                  {statsError}
+                </div>
+              )}
+
+              {!statsAvailable && !statsLoading && !statsError && (
+                <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4 text-white/60">
+                  Your stats will appear here once loaded.
+                </div>
+              )}
+
+              {statsAvailable && stats && (
+                <div className="mt-8 space-y-8">
+                  <div className="rounded-3xl border border-white/10 bg-black/20 p-6">
+                    <div className="text-2xl font-semibold text-white">
+                      {stats.athlete_name || riderName || "Rider"}
+                    </div>
+                    {buildAthleteMeta(stats) && (
+                      <div className="mt-2 text-sm text-white/50">
+                        {buildAthleteMeta(stats)}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-4">
+                    <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                      <div className="text-sm text-white/50">No. of Rides</div>
+                      <div className="mt-2 text-3xl font-semibold text-white">
+                        {formatNumber(stats.ride_count)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                      <div className="text-sm text-white/50">Total Kms</div>
+                      <div className="mt-2 text-3xl font-semibold text-white">
+                        {formatKm(stats.all_cycling_km)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                      <div className="text-sm text-white/50">Elevation Gain</div>
+                      <div className="mt-2 text-3xl font-semibold text-white">
+                        {formatMeters(stats.elevation_m)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                      <div className="text-sm text-white/50">Longest Ride</div>
+                      <div className="mt-2 text-3xl font-semibold text-white">
+                        {formatKm(stats.longest_ride_km)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-2xl font-semibold text-white">
+                      Distance milestones
+                    </h3>
+
+                    <div className="mt-4 grid gap-4 md:grid-cols-4 xl:grid-cols-7">
+                      {[
+                        ["100s", stats.count_100km_rides],
+                        ["200s", stats.count_200km_rides],
+                        ["300s", stats.count_300km_rides],
+                        ["400s", stats.count_400km_rides],
+                        ["600s", stats.count_600km_rides],
+                        ["1000s", stats.count_1000km_rides],
+                        ["1200s", stats.count_1200km_rides],
+                      ].map(([label, value]) => (
+                        <div
+                          key={label}
+                          className="rounded-3xl border border-white/10 bg-black/20 p-5"
+                        >
+                          <div className="text-sm text-white/50">{label}</div>
+                          <div className="mt-2 text-2xl font-semibold text-white">
+                            {formatNumber(value)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-2xl font-semibold text-white">
+                      Recent progress
+                    </h3>
+
+                    <div className="mt-4 grid gap-4 md:grid-cols-4">
+                      <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                        <div className="text-sm text-white/50">Current Week</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">
+                          {formatKm(stats.current_week_km)}
+                        </div>
+                      </div>
+
+                      <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                        <div className="text-sm text-white/50">Previous Week</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">
+                          {formatKm(stats.previous_week_km)}
+                        </div>
+                      </div>
+
+                      <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                        <div className="text-sm text-white/50">Current Month</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">
+                          {formatKm(stats.current_month_km)}
+                        </div>
+                      </div>
+
+                      <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                        <div className="text-sm text-white/50">Previous Month</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">
+                          {formatKm(stats.previous_month_km)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {(stats.last_activity_date || stats.last_calculated_at) && (
+                    <div className="text-sm text-white/40">
+                      {stats.last_activity_date &&
+                        `Last activity: ${stats.last_activity_date}`}
+                      {stats.last_activity_date &&
+                        stats.last_calculated_at &&
+                        " • "}
+                      {stats.last_calculated_at &&
+                        `Updated: ${stats.last_calculated_at}`}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 
 function App() {
@@ -25,7 +25,51 @@ function App() {
 
   const connectUrl = "https://bcc-strava-connect.onrender.com/connect";
   const logoUrl = "/bcc_logo.jpeg";
-  
+
+  const [isConnected, setIsConnected] = useState(false);
+  const [riderName, setRiderName] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get("connected");
+    const name = params.get("name");
+
+    if (connected === "1") {
+      localStorage.setItem("bcc_strava_connected", "true");
+      if (name) localStorage.setItem("bcc_rider_name", name);
+      setIsConnected(true);
+      setRiderName(name || "");
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+
+    const savedConnected = localStorage.getItem("bcc_strava_connected");
+    const savedName = localStorage.getItem("bcc_rider_name");
+
+    if (savedConnected === "true") {
+      setIsConnected(true);
+      setRiderName(savedName || "");
+    }
+  }, []);
+
+  const heroButtonText = useMemo(() => {
+    return isConnected ? "Connected" : "Connect Strava";
+  }, [isConnected]);
+
+  const connectCardTitle = useMemo(() => {
+    return isConnected ? "You’re in." : "Connect your Strava account";
+  }, [isConnected]);
+
+  const connectCardText = useMemo(() => {
+    if (isConnected) {
+      return riderName
+        ? `${riderName}, your Strava account is connected.`
+        : "Your Strava account is connected.";
+    }
+
+    return "Connect once. Your rides get tracked. Your name shows up where it should.";
+  }, [isConnected, riderName]);
+
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <section className="relative overflow-hidden border-b border-white/10">
@@ -35,8 +79,14 @@ function App() {
           <div className="grid gap-12 md:grid-cols-2 md:items-center">
             <div>
               <div className="mb-4 flex items-center gap-3">
-                <img src={logoUrl} alt="BCC logo" className="h-12 w-12 rounded-full object-contain" />
-                <span className="text-sm text-yellow-300">Bengaluru Cycling Club</span>
+                <img
+                  src={logoUrl}
+                  alt="BCC logo"
+                  className="h-12 w-12 rounded-full object-contain"
+                />
+                <span className="text-sm text-yellow-300">
+                  Bengaluru Cycling Club
+                </span>
               </div>
 
               <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
@@ -50,10 +100,17 @@ function App() {
 
               <div className="mt-8 flex flex-wrap gap-4">
                 <a
-                  href={connectUrl}
-                  className="relative z-10 rounded-2xl bg-yellow-500 px-6 py-3 font-medium text-neutral-950 shadow-lg shadow-yellow-500/20 transition hover:scale-[1.02]"
+                  href={isConnected ? "#connect" : connectUrl}
+                  className={`relative z-10 rounded-2xl px-6 py-3 font-medium transition ${
+                    isConnected
+                      ? "cursor-default bg-white/10 text-white/60"
+                      : "bg-yellow-500 text-neutral-950 shadow-lg shadow-yellow-500/20 hover:scale-[1.02]"
+                  }`}
+                  onClick={(e) => {
+                    if (isConnected) e.preventDefault();
+                  }}
                 >
-                  Connect Strava
+                  {heroButtonText}
                 </a>
 
                 <a
@@ -111,7 +168,10 @@ function App() {
         </div>
       </section>
 
-      <section id="connect" className="border-y border-white/10 bg-white/[0.03]">
+      <section
+        id="connect"
+        className="border-y border-white/10 bg-white/[0.03]"
+      >
         <div className="mx-auto max-w-7xl px-6 py-16 md:py-24">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
@@ -128,17 +188,21 @@ function App() {
               <div className="text-sm uppercase tracking-[0.2em] text-yellow-300/80">
                 BCC Connect
               </div>
-              <div className="mt-4 text-2xl font-semibold">You’re in.</div>
-              <p className="mt-3 text-white/60">
-                Connect once. Your rides get tracked. Your name shows up where it
-                should.
-              </p>
-              <a
-                href={connectUrl}
-                className="mt-6 inline-block rounded-2xl bg-yellow-500 px-5 py-3 font-medium text-neutral-950"
-              >
-                Connect Strava
-              </a>
+
+              <div className="mt-4 text-2xl font-semibold">
+                {connectCardTitle}
+              </div>
+
+              <p className="mt-3 text-white/60">{connectCardText}</p>
+
+              {!isConnected && (
+                <a
+                  href={connectUrl}
+                  className="mt-6 inline-block rounded-2xl bg-yellow-500 px-5 py-3 font-medium text-neutral-950"
+                >
+                  Connect Strava
+                </a>
+              )}
             </div>
           </div>
         </div>
